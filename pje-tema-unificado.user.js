@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         PJe - Tema unificado (claro / sépia / escuro) + painel limpo
 // @namespace    pje.tema.unificado
-// @version      1.0.0
+// @version      1.0.1
 // @description  Script ÚNICO do PJe (TRF5): tema claro/sépia/escuro no dashboard, no painel lateral da lista de processos, na barra da tarefa, na tela da minuta e no editor (Badon Writer / ShadowRoot fechado), mais o "cartão de tarefa limpo". Botão discreto no canto inferior esquerdo cicla CLARO -> SÉPIA -> ESCURO sem recarregar a página.
 // @author       Ricardo
+// @updateURL    https://raw.githubusercontent.com/jusgador/PJE-ScriptsDiversos/main/pje-tema-unificado.user.js
+// @downloadURL  https://raw.githubusercontent.com/jusgador/PJE-ScriptsDiversos/main/pje-tema-unificado.user.js
 // @match        https://frontend-prd.trf5.jus.br/*
 // @match        https://pje1g.trf5.jus.br/pje/*
 // @match        https://pje2g.trf5.jus.br/pje/*
@@ -213,6 +215,15 @@
             painelHover:   '#f1e4c8',
             painelBorda:   '#e0d3b8',
             folhaBg:       '#f7efdc',   // "barras" em volta do texto da minuta
+
+            // Etiquetas de dias (verde/âmbar/vermelho) e numeração do lote. Os
+            // FUNDOS são do PJe e não são tematizados — em compensação são os
+            // mesmos nos dois temas —, então estas cores também são iguais nos
+            // dois. Branco é o visual do PJe; o cinza escuro existe porque branco
+            // sobre o cinza-claro da numeração daria 1,61:1 (ver a regra em
+            // cssPainelTema()).
+            etiquetaTexto:  '#ffffff',
+            numeracaoTexto: '#444444',
         },
         escuro: {
             esquema:       'dark',
@@ -236,6 +247,11 @@
             painelHover:   '#2d353f',
             painelBorda:   '#333b45',
             folhaBg:       '#23282f',
+
+            // Idem sépia: os fundos das etiquetas e da numeração são do PJe, não
+            // do tema, então as cores abaixo são as mesmas nos dois modos.
+            etiquetaTexto:  '#ffffff',
+            numeracaoTexto: '#444444',
         },
     };
 
@@ -800,6 +816,31 @@ div.painel-usuario-interno-dashboard {
 #divProcessosTarefa .datalist-content .row.icones,
 #divProcessosTarefa .datalist-content .row.icones * {
     color: ${p.textoSuave} !important;
+}
+/* Etiquetas de dias (.date): o curinga acima pintava o texto delas com
+   textoSuave, mas o FUNDO verde/âmbar/vermelho é do PJe e não é tematizado — o
+   resultado era ilegível (1,10:1 no verde, 1,11:1 no vermelho, 1,95:1 no âmbar;
+   AA pede 4,5:1). Devolvemos o branco do PJe: 4,59:1 no verde e 4,60:1 no
+   vermelho. No âmbar o branco fica em 2,14:1 — é a cor original do PJe, mantida
+   de propósito (decisão de 2026-09, priorizando o visual de "fonte branca").
+   Especificidade (1,3,0) > (1,2,0) da regra acima: vence sem depender da ordem
+   em que as folhas são injetadas, e sem tocar no curinga. */
+#divProcessosTarefa .datalist-content .row.icones .date * {
+    color: ${p.etiquetaTexto} !important;
+    font-weight: 600 !important;
+}
+/* A numeração do lote ("2/293") tem FUNDO cinza-claro do PJe: branco daria
+   1,61:1, então usa o cinza escuro (6,07:1).
+   Cobre os dois arranjos possíveis do DOM — numeração DENTRO de .date (os dois
+   primeiros seletores, especificidade 1,3,0, que vencem a regra acima por virem
+   depois) ou como IRMÃ dela (os dois últimos, 1,2,0, que vencem o curinga pelo
+   mesmo motivo: ordem). Só CSS padrão, sem hack de especificidade. */
+#divProcessosTarefa .datalist-content .row.icones .date .numeracao-do-processo-datalist-card,
+#divProcessosTarefa .datalist-content .row.icones .date .numeracao-do-processo-datalist-card *,
+#divProcessosTarefa .datalist-content .row.icones .numeracao-do-processo-datalist-card,
+#divProcessosTarefa .datalist-content .row.icones .numeracao-do-processo-datalist-card * {
+    color: ${p.numeracaoTexto} !important;
+    font-weight: 600 !important;
 }
 /* Paginação — é um <p-dataList [paginator]="true"> do PrimeNG (prefixo ui-*),
    por isso o container é .ui-paginator, e não .pagination. */
