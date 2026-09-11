@@ -1,2 +1,5 @@
 # Anexos e rascunhos locais do assistente (capturas de tela, dumps temporários).
 .reasonix/
+
+# Configuração local do assistente: guarda caminhos absolutos desta máquina.
+reasonix.toml
